@@ -37,3 +37,44 @@ def register():
         
         flash(error)
     return render_template("auth/register.html")
+
+@bp.route("/login", methods=("GET", "POST"))
+def login():
+    """Route to login the user"""
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        error = None
+        db = get_db()
+
+        user = db.execute(
+            "SELECT * FROM user WHERE username = ?", (username,)
+        ).fetchone()
+
+        if user is None:
+            error = "User not found!"
+        elif not check_password_hash(user.password, password):
+            error = "Incorrect password!"
+
+        if error is None:
+            session.clear()
+            session["user_id"] = user.id
+            return redirect(url_for("index"))
+
+        flash(error)
+
+    return render_template("auth/login.html")
+
+
+@bp.before_app_request
+def load_logged_in_user():
+    user_id = session["user_id"]
+    
+    if user_id:
+        db = get_db()
+        user = db.execute(
+            "SELECT * FROM user WHERE id = ?",
+            (user_id,)
+        )
+    
