@@ -33,7 +33,7 @@ def create_app(test_config=None):
     app.register_blueprint(auth.bp)
     
     @app.route("/hello")
-    def hello():
+    def index():
         return "Hello, world!"
     
     
